@@ -2,7 +2,7 @@ import re
 
 input_file = open("Day_1/input.txt", "r")
 
-sum = 0;
+sum = 0
 units = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
 for line in input_file:
