@@ -1,13 +1,12 @@
 import re
 
-input = open("Day_1/input.txt", "r")
+input_file = open("Day_1/input.txt", "r")
 
 sum = 0;
-digits = ''
-for line in input:
+for line in input_file:
 	numbers = re.findall(r'\d', line)
-	digits = numbers[0] + numbers[len(numbers)-1]
+	digits = numbers[0] + numbers[-1]
 	sum += int(digits)
 print(sum)
 
-input.close()
+input_file.close()
