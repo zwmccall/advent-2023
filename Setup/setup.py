@@ -4,16 +4,16 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 import constants
+import shutil
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-# Creates folder for the day if one doesn't exist
+# Creates folder for the day
+# only run if folder doesn't exist
 def create_folder(num_day):
 	folder_path = (os.path.join(__location__, f"..\Day_{num_day}"))
 	try:
-		# Check if the folder does not exist
 		if not os.path.exists(folder_path):
-			# Create the folder
 			os.makedirs(folder_path)
 			print(f"Folder '{folder_path}' created successfully.")
 		else:
@@ -21,7 +21,8 @@ def create_folder(num_day):
 	except Exception as e:
 		print(f"Error creating folder '{folder_path}': {str(e)}")
 
-# Downloads the day's input file if it doesn't exist
+# Downloads the day's input file
+# only run if file doesn't exist since input data doesn't change
 def download_input(num_day):
 	try:
 		file_path = (os.path.join(__location__, f"..\Day_{num_day}\input.txt"))
@@ -30,13 +31,14 @@ def download_input(num_day):
 			headers = {
 				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
 			}
+			# Session cookie pulled from separate file to keep private
 			cookies = {
 				"session": constants.SESSION_COOKIE
 			}
 
 			response = requests.get(url, headers=headers, cookies=cookies)
 
-			# Check if the request was successful (status code 200)
+			# Successful request
 			if response.status_code == 200:
 				# Parse the HTML content
 				results = BeautifulSoup(response.text, 'html.parser')
@@ -56,20 +58,22 @@ def download_input(num_day):
 	except Exception as e:
 		print(f"Error: {str(e)}")
 
-# Downloads the puzzle info, can run again after finishing part 1 to add part 2 puzzle info
+# Downloads the puzzle info
+# can run again after finishing part 1 to add part 2 puzzle info
 def download_puzzle(num_day):
 	try:
 		url = f"https://adventofcode.com/2023/day/{num_day}"
 		headers = {
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
 		}
+		# Session cookie pulled from separate file to keep private
 		cookies = {
 			"session": constants.SESSION_COOKIE
 		}
 
 		response = requests.get(url, headers=headers, cookies=cookies)
 
-		# Check if the request was successful (status code 200)
+		# Successful request
 		if response.status_code == 200:
 			# Parse the HTML content
 			results = BeautifulSoup(response.text, 'html.parser')
@@ -78,6 +82,7 @@ def download_puzzle(num_day):
 			content = results.find_all("article", class_="day-desc")
 
 			text_content = content[0].get_text()
+			# Append part 2 info if available
 			if len(content) == 2:
 				text_content = content[0].get_text() + '\n' + content[1].get_text()
 
@@ -88,12 +93,11 @@ def download_puzzle(num_day):
 
 			print("Puzzle info downloaded successfully.")
 
-			# Get the text content
+			# Get the examples, which are in a <pre> tag
 			examples = results.find_all("pre")
 
 			for idx, example in enumerate(examples):
 				text_content = example.text.strip()
-				# Save the text content to a file
 				file_path = (os.path.join(__location__, f"..\Day_{num_day}\example_{idx+1}.txt"))
 				with open(file_path, 'w', encoding='utf-8') as file:
 					file.write(text_content)
@@ -106,18 +110,18 @@ def download_puzzle(num_day):
 		print(f"Error: {str(e)}")
 
 # Creates solution file from boilerplate
+# only run if file doesn't exist so it doesn't overwrite part 1 progress
 def create_solution(num_day):
-	folder_path = (os.path.join(__location__, f"..\Day_{num_day}"))
+	source_path = (os.path.join(__location__, f"solution.py"))
+	destination_path = (os.path.join(__location__, f"..\Day_{num_day}\solution.py"))
 	try:
-		# Check if the folder does not exist
-		if not os.path.exists(folder_path):
-			# Create the folder
-			os.makedirs(folder_path)
-			print(f"Folder '{folder_path}' created successfully.")
+		if not os.path.exists(destination_path):
+			shutil.copyfile(source_path, destination_path)
+			print(f"File '{destination_path}' created successfully.")
 		else:
-			print(f"Folder '{folder_path}' already exists.")
+			print(f"File '{destination_path}' already exists.")
 	except Exception as e:
-		print(f"Error creating folder '{folder_path}': {str(e)}")
+		print(f"Error creating file '{destination_path}': {str(e)}")
 
 # Valid day is between 1-31 and only dates that have already been unlocked
 def get_valid_day(prompt):
@@ -149,3 +153,4 @@ num_day = get_valid_day("Enter the number day: ")
 create_folder(num_day)
 download_input(num_day)
 download_puzzle(num_day)
+create_solution(num_day)
