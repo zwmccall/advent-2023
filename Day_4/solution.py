@@ -7,60 +7,41 @@ with open(input_path, "r") as input_file:
 	cards = input_file.readlines()
 
 def build_array():
-	cards_array = []
+	all_cards_array = []
 	for card in cards:
-		card_array = []
-		numbers = card.split('|')
-		winning_nums = numbers[0]
-		winning_nums = winning_nums[winning_nums.index(':')+1:]
-		winning_nums = re.findall(r'\d+', winning_nums)
-		card_array.append(winning_nums)
-		card_nums = numbers[1]
-		card_nums = re.findall(r'\d+', card_nums)
-		card_array.append(card_nums)
-		card_array.append(1)
-		cards_array.append(card_array)
-	return cards_array
+		winning_nums = re.findall(r'\d+', card.split('|')[0].split(':')[1])
+		card_nums = re.findall(r'\d+', card.split('|')[1])
+
+		all_cards_array.append([winning_nums, card_nums, 1])
+	return all_cards_array
 
 def score_card(card, method):
-	score = 0
+	matches = sum(1 for num in card[1] if num in card[0])
+
 	if method == 'points':
-		for num in card[1]:
-			if num in card[0]:
-				if score == 0:
-					score = 1
-				else:
-					score = score * 2
+		score = 0 if matches == 0 else 2**(matches - 1)
 		return score
 	elif method == 'cards':
-		for num in card[1]:
-			if num in card[0]:
-				score += 1
-		return score
+		return matches
 
-def part_1():
-	sum = 0
-	cards_array = build_array()
-	for card in cards_array:
-		sum += score_card(card, 'points')
-	return str(sum)
+def part_1(all_cards_array):
+	total_sum = sum(score_card(card, 'points') for card in all_cards_array)
+	return str(total_sum)
 
-def part_2():
-	sum = 0
-	cards_array = build_array()
-	for idx, card in enumerate(cards_array):
+def part_2(all_cards_array):
+	for cur_idx, card in enumerate(all_cards_array):
 		# Find matches for each copy of the card
 		for _ in range(0,card[2]):
 			matches = score_card(card, 'cards')
 			# For x num of matches increment the number of the next x cards
-			for match in range(1,matches+1):
-				cards_array[idx+match][2] += 1
+			for match_idx in range(1,matches+1):
+				all_cards_array[cur_idx+match_idx][2] += 1
 	# sum up the num copies of each card
-	for card in cards_array:
-		sum += int(card[2])
-	return str(sum)
+	total_sum = sum(int(card[2]) for card in all_cards_array)
+	return str(total_sum)
 
-print('Part 1: ' + part_1())
-print('Part 2: ' + part_2())
+all_cards_array = build_array()
+print('Part 1: ' + part_1(all_cards_array))
+print('Part 2: ' + part_2(all_cards_array))
 
 input_file.close()
